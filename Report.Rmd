@@ -3,11 +3,238 @@ title: "STAT2006 FINAL ASSESMENT"
 output: html_document
 ---
 
-#
-#   STAT2006 - Final Project
-# 
-#   Group Members:
-#     Leo Timmins (23559213)
-#     Noah Grieve (Number here)
-# 
+#### Group Members:
+- **Leo Timmins** (*23559213*)
+- **Noah Grieve** (*Number here*)
+  
+#### Notes:
+- Project tracked with git
+- Datasets found under `./data/`
+
+#### Librarys
+```{r}
+#| warning: false
+#| message: false # just to get rid of an error message im having with conflicts
+library(tidyverse)
+library(tidymodels)
+library(leaps)
+```
+
+### Question 1.
+
+#### Section 1a.
+Read the dataset project_data1.csv into R and perform an 80/20 training–test split using a random
+seed of 2006. Clearly show the training and test datasets created. (5 marks)
+```{r}
+# read the dataset ./data/project_data1.csv
+project_data1 <- read_csv("./data/project_data1.csv")
+
+# preform an 80/20 split with seed of 2006
+set.seed(2006)
+
+split_data1 <- initial_split(project_data1, prop = 0.8)
+train_data1 <- training(split_data1)
+test_data1 <- testing(split_data1)
+
+# clearly show the training and test datasets
+print(train_data1)
+print(test_data1)
+```
+
+Using the training dataset, perform forward stepwise variable selection with the regsubsets()
+function. Use all available predictors and set the maximum number of variables to 25. (5 marks)
+```{r}
+forward_stepwise <- regsubsets(
+  y ~ .,                          # Y is predicted by the 25 X columns
+  data = train_data1,             # uses the training dataset
+  nvmax = 25,                     # set the maximum number of variables to 25
+  method = "forward"              # forward stepwise variable selection
+)
+
+forward_summary <- summary(forward_stepwise)
+```
+
+Obtain the Cp values from the fitted forward stepwise model and produce a plot of Cp versus the
+number of predictors 𝑝. Clearly highlight the model corresponding to the minimum Cp value on
+the plot. (4 marks)
+```{r}
+cp_vals <- forward_summary$cp
+predictors <- 1:length(cp_vals)
+
+plot(
+  predictors,                            # X data
+  cp_vals,                               # Y data
+  type = "b",                            # shows both points and lines
+  xlab = "Number of Predictors",         # X label
+  ylab = "Cp",                           # Y label
+  main = "Cp vs. Number of Predictors"   # Title
+)
+
+min_cp <- which.min(cp_vals) # Finds lowest Cp value
+
+# changes the point to red
+points(
+  predictors[min_cp],
+  cp_vals[min_cp],
+  col = "red",
+)
+```
+
+
+#### Section 1b.
+Using the training dataset obtained in Q1(a), perform the following analyses using 5-fold cross-validation
+with a random seed of 2006.
+
+Fit the following penalized regression models using cv.glmnet():
+
+- Lasso regression (𝛼 = 1)
+- Ridge regression (𝛼 = 0)
+- Elastic-net regression (𝛼 = .5)
+
+Use the same fold allocation (hint: see foldid argument) for all three models and produce the
+corresponding cross-validation plots. (6 marks)
+```{r}
+```
+
+Extract the lambda.1se value for each of the three fitted models and fit the final lasso, ridge, and
+elastic-net models using the extracted tuning parameters. (6 marks)
+```{r}
+```
+
+Fit a linear regression model using the predictors selected from the forward stepwise selection
+procedure. (2 marks)
+```{r}
+```
+
+Use the test dataset to obtain predictions for all four fitted models:
+– Lasso
+– Ridge
+– Elastic-net
+– Linear regression model selected using forward selection
+Compute and present the RMSE values for all four models in a suitable table ordered from the
+smallest RMSE to the largest RMSE. (5 marks)
+```{r}
+```
+
+Based on the RMSE values, identify the best-performing model. (2 marks)
+```{r}
+```
+
+### Question 2.
+Read the dataset project_data2.csv into R and perform a 75/25 training–test split using a random
+seed of 2006. (5 marks)
+```{r}
+```
+
+Using the training dataset, fit elastic-net regression models using cv.glmnet() for the following
+values of 𝛼: 𝛼 = 0.0, .1 , .2, ..., 1.0 
+
+Store the fitted cross-validation objects using a tibble list-column approach. (5 marks)
+```{r}
+```
+
+Extract the lambda.1se value corresponding to each value of 𝛼𝛼 and fit the associated elastic-net
+model using glmnet(). Store the fitted models in tibble list-columns. (7 marks)
+```{r}
+```
+
+Use the fitted models to predict the response values for the test dataset and compute the RMSE
+for each fitted model using a tibble list-column workflow. Present the RMSE values in ascending
+order and identify the optimal elastic-net model. (5 marks)
+```{r}
+```
+
+For the optimal elastic-net model, produce a scatter plot of predicted versus actual response
+values for the test dataset. Include the reference line 𝑦 = 𝑥 on the plot. (3 marks)
+```{r}
+```
+
+### Question 3.
+The dataset heart-disease.csv is available in the Datasets folder. In this question, your objective is to build
+classification models for predicting the variable target.
+
+The variables in the dataset are described below.
+
+- age: age in years
+- sex: sex (1 = male; 0 = female)
+- cp: chest pain type
+- trestbps: resting blood pressure (in mm Hg on admission to the hospital)
+- chol: serum cholestoral in mg/dl
+- fbs: fasting blood sugar > 120 mg/dl (1 = true; 0 = false)
+- restecg: resting electrocardiographic results
+- thalach: maximum heart rate achieved
+- exang: exercise induced angina (1 = yes; 0 = no)
+- oldpeak: ST depression induced by exercise relative to rest
+- slope: the slope of the peak exercise ST segment
+- ca: number of major vessels (0–3) coloured by fluoroscopy
+- thal: 0 = normal; 1 = fixed defect; 2 = reversible defect
+- target: 1 = presence of heart disease; 0 = absence of heart disease
+
+For this question, you must use the tidyverse list-column approach with tibble, as demonstrated in the
+lectures and computer laboratories. In particular, you should use functions such as:
+
+- map()
+- map2()
+- map_dbl()
+- crossing()
+
+from the purrr and tidyr packages to store fitted models, predictions, confusion matrices, and performance
+metrics.
+
+Read the dataset heart-disease.csv into R and convert the variables target, sex, fbs, exang, ca, and
+thal into factors. Display an appropriate summary of the dataset. (3 marks)
+```{r}
+```
+
+Using a random seed of 2006, divide the data into an 80/20 training–test split using stratified
+sampling based on target. Verify that the proportions of target = 0 and target = 1 are similar in the
+original, training, and test datasets. (7 marks)
+```{r}
+```
+
+Perform 5-fold cross-validation on the training dataset using stratified folds based on target.
+Consider the following values of mtry for the random forest model
+mtry = 2,3,4,5,6,7,8,9,10,11,12
+
+Use the crossing() function to create a tibble containing all combinations of cross-validation folds and
+mtry values. (5 marks)
+```{r}
+```
+
+For each combination of cross-validation fold and mtry value:
+– Create the corresponding training and validation datasets,
+– Fit a random forest classification model using the training fold,
+– Obtain predictions for the validation fold.
+
+Store all fitted models and predictions using tibble list-columns. (5 marks)
+```{r}
+```
+
+For each fitted random forest model, compute the following performance measures based on the
+validation fold predictions:
+– Accuracy
+– Sensitivity
+– Specificity
+
+Then compute the average value of each metric across the five cross-validation folds for every mtry
+value. Present the results in a suitable table ordered by decreasing accuracy. Identify the optimal mtry
+value. (10 marks)
+```{r}
+```
+
+Using the entire training dataset:
+– Fit a logistic regression model,
+– Fit a random forest model using the optimal mtry value selected from the cross-validation
+procedure.
+
+Evaluate both models on the test dataset and report the following performance metrics:
+- Accuracy
+- Sensitivity
+- Specificity
+Also compute the AUC values and produce ROC curves for both models. Based on the overall results,
+comment on which model you would recommend for predicting heart disease. (10 marks)
+
+```{r}
+```
+
 
