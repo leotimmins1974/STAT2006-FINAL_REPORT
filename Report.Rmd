@@ -1,5 +1,13 @@
 ---
-title: "Report"
+title: "STAT2006 FINAL ASSESMENT"
 output: html_document
 ---
+
+#
+#   STAT2006 - Final Project
+# 
+#   Group Members:
+#     Leo Timmins (23559213)
+#     Noah Grieve (Number here)
+# 
 
